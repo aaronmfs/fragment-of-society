@@ -1,143 +1,141 @@
 @startuml
 skinparam classAttributeIconSize 0
+skinparam packageStyle rectangle
 
-' Data Classes
-class Stats {
-    +max_hp: int
-    +attack: int
-    +defense: int
-    +speed: int
+package "Game Core" #LightBlue {
+    class Game {
+        -screen
+        -clock
+        -running
+        -dt
+        -events
+        +player
+        +player_controller
+        +handle_events()
+        +update()
+        +draw()
+        +run()
+    }
 }
 
-class MageStats {
-    +mana: int
-    +magic_damage: int
+package "Entities" #LightGreen {
+    class Entity {
+        -id
+        -stats
+        -pos
+        -_hp
+        +hp
+        +update()
+        +take_damage()
+        +heal()
+        +is_alive()
+    }
+    
+    class Character {
+        +name
+        +speed
+    }
+    
+    class Generic
 }
 
-class KeyBinding {
-    +key: int
-    +action: str
-    +holdable: bool
+package "Components" #LightYellow {
+    class Stats {
+        +max_hp
+        +attack
+        +defense
+        +speed
+    }
+    
+    class MageStats {
+        +mana
+        +magic_damage
+    }
+    
+    class KeyBinding {
+        +key
+        +action
+        +holdable
+    }
+    
+    class MouseButtonBinding {
+        +button
+        +action
+    }
 }
 
-class MouseButtonBinding {
-    +button: int
-    +action: str
+package "Input" #LightCoral {
+    class KeyboardInput {
+        -_bindings
+        -_actions_pressed
+        -_actions_just_pressed
+        -_actions_just_released
+        +bind_key()
+        +unbind_key()
+        +update()
+        +is_held()
+        +is_pressed()
+        +is_released()
+        +get_movement_vector()
+    }
+    
+    class MouseInput {
+        -_button_bindings
+        -_buttons_pressed
+        -_buttons_just_pressed
+        -_buttons_just_released
+        -_mouse_pos
+        -_mouse_delta
+        -_wheel_y
+        -_relative_mode
+        +bind_button()
+        +unbind_button()
+        +update()
+        +is_held()
+        +is_pressed()
+        +is_released()
+        +get_position()
+        +get_delta()
+        +get_wheel_delta()
+        +set_relative_mode()
+        +is_relative_mode()
+        +hide_cursor()
+        +show_cursor()
+        +get_world_position()
+    }
+}
+
+package "Controllers" #LightPink {
+    class Player {
+        +account_name
+        +coins
+        +active_character
+        +keyboard
+        +mouse
+        +update()
+    }
+    
+    class PlayerController {
+        -player
+        -character
+        +update()
+    }
 }
 
 ' Inheritance
-MageStats --|> Stats
+MageStats --|> Stats : extends
+Entity <|-- Character : inherits
+Character <|-- Generic : inherits
 
-' Entity Class
-class Entity {
-    -id: UUID
-    -stats: Stats
-    -pos: pygame.Vector2
-    -_hp: int
-    +hp: int {property}
-    +update(dt: float)
-    +take_damage(amount: int)
-    +heal(amount: int)
-    +is_alive(): bool
-}
-
-' Character Class
-class Character {
-    +name: str
-    +speed: float
-}
-
-' Generic Class
-class Generic {
-    +__init__(x, y, name, stats)
-}
-
-Entity <|-- Character
-Character <|-- Generic
-
-' Player Class
-class Player {
-    +account_name: str
-    +coins: int
-    +active_character: Character
-    +keyboard: KeyboardInput
-    +mouse: MouseInput
-    +update(events: list)
-}
-
-' PlayerController Class
-class PlayerController {
-    -player: Player
-    -character: Character
-    +update(dt: float)
-}
-
+' Composition
+Game *-- Player : owns
+Game *-- PlayerController : owns
+Player *-- Character : owns
+Player *-- KeyboardInput : owns
+Player *-- MouseInput : owns
 PlayerController --> Player : controls
-
-' KeyboardInput Class
-class KeyboardInput {
-    -_bindings: Dict[str, KeyBinding]
-    -_actions_pressed: Set
-    -_actions_just_pressed: Set
-    -_actions_just_released: Set
-    +bind_key(key: int, action: str, holdable: bool)
-    +unbind_key(action: str)
-    +update()
-    +is_held(action: str): bool
-    +is_pressed(action: str): bool
-    +is_released(action: str): bool
-    +get_movement_vector(): pygame.math.Vector2
-}
-
-' MouseInput Class
-class MouseInput {
-    -_button_bindings: Dict[str, MouseButtonBinding]
-    -_buttons_pressed: Set
-    -_buttons_just_pressed: Set
-    -_buttons_just_released: Set
-    -_mouse_pos: pygame.math.Vector2
-    -_mouse_delta: pygame.math.Vector2
-    -_wheel_y: int
-    -_relative_mode: bool
-    +bind_button(button: int, action: str)
-    +unbind_button(action: str)
-    +update(event_list: list)
-    +is_held(action: str): bool
-    +is_pressed(action: str): bool
-    +is_released(action: str): bool
-    +get_position(): pygame.math.Vector2
-    +get_delta(): pygame.math.Vector2
-    +get_wheel_delta(): int
-    +set_relative_mode(enabled: bool)
-    +is_relative_mode(): bool
-    +hide_cursor()
-    +show_cursor()
-    +get_world_position(camera_offset, zoom): pygame.math.Vector2
-}
-
-' Game Class
-class Game {
-    +screen: pygame.Surface
-    +clock: pygame.time.Clock
-    +running: bool
-    +dt: float
-    +player: Player
-    +player_controller: PlayerController
-    -events: list
-    +handle_events()
-    +update()
-    +draw()
-    +run()
-}
-
-' Relationships
-Entity --> Stats : has
-Player --> Character : active_character
-Player --> KeyboardInput : keyboard
-Player --> MouseInput : mouse
-Game --> Player : player
-Game --> PlayerController : player_controller
-KeyboardInput --> KeyBinding : uses
-MouseInput --> MouseButtonBinding : uses
+Entity *-- Stats : owns
+KeyboardInput *-- KeyBinding : owns
+MouseInput *-- MouseButtonBinding : owns
 
 @enduml
