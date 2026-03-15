@@ -8,10 +8,7 @@ class PlayerController:
         self.keyboard = KeyboardInput()
         self.mouse = MouseInput()
 
-    def update(self, dt: float, events: list) -> None:
-        self.keyboard.update()
-        self.mouse.update(events)
-
+    def update(self, dt: float) -> None:
         final_speed = self.character.speed * ( 1 + self.character.stats.speed / 100 )
 
         move_vec = pygame.math.Vector2(0, 0)
