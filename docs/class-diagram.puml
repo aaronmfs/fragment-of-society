@@ -1,0 +1,143 @@
+@startuml
+skinparam classAttributeIconSize 0
+
+' Data Classes
+class Stats {
+    +max_hp: int
+    +attack: int
+    +defense: int
+    +speed: int
+}
+
+class MageStats {
+    +mana: int
+    +magic_damage: int
+}
+
+class KeyBinding {
+    +key: int
+    +action: str
+    +holdable: bool
+}
+
+class MouseButtonBinding {
+    +button: int
+    +action: str
+}
+
+' Inheritance
+MageStats --|> Stats
+
+' Entity Class
+class Entity {
+    -id: UUID
+    -stats: Stats
+    -pos: pygame.Vector2
+    -_hp: int
+    +hp: int {property}
+    +update(dt: float)
+    +take_damage(amount: int)
+    +heal(amount: int)
+    +is_alive(): bool
+}
+
+' Character Class
+class Character {
+    +name: str
+    +speed: float
+}
+
+' Generic Class
+class Generic {
+    +__init__(x, y, name, stats)
+}
+
+Entity <|-- Character
+Character <|-- Generic
+
+' Player Class
+class Player {
+    +account_name: str
+    +coins: int
+    +active_character: Character
+    +keyboard: KeyboardInput
+    +mouse: MouseInput
+    +update(events: list)
+}
+
+' PlayerController Class
+class PlayerController {
+    -player: Player
+    -character: Character
+    +update(dt: float)
+}
+
+PlayerController --> Player : controls
+
+' KeyboardInput Class
+class KeyboardInput {
+    -_bindings: Dict[str, KeyBinding]
+    -_actions_pressed: Set
+    -_actions_just_pressed: Set
+    -_actions_just_released: Set
+    +bind_key(key: int, action: str, holdable: bool)
+    +unbind_key(action: str)
+    +update()
+    +is_held(action: str): bool
+    +is_pressed(action: str): bool
+    +is_released(action: str): bool
+    +get_movement_vector(): pygame.math.Vector2
+}
+
+' MouseInput Class
+class MouseInput {
+    -_button_bindings: Dict[str, MouseButtonBinding]
+    -_buttons_pressed: Set
+    -_buttons_just_pressed: Set
+    -_buttons_just_released: Set
+    -_mouse_pos: pygame.math.Vector2
+    -_mouse_delta: pygame.math.Vector2
+    -_wheel_y: int
+    -_relative_mode: bool
+    +bind_button(button: int, action: str)
+    +unbind_button(action: str)
+    +update(event_list: list)
+    +is_held(action: str): bool
+    +is_pressed(action: str): bool
+    +is_released(action: str): bool
+    +get_position(): pygame.math.Vector2
+    +get_delta(): pygame.math.Vector2
+    +get_wheel_delta(): int
+    +set_relative_mode(enabled: bool)
+    +is_relative_mode(): bool
+    +hide_cursor()
+    +show_cursor()
+    +get_world_position(camera_offset, zoom): pygame.math.Vector2
+}
+
+' Game Class
+class Game {
+    +screen: pygame.Surface
+    +clock: pygame.time.Clock
+    +running: bool
+    +dt: float
+    +player: Player
+    +player_controller: PlayerController
+    -events: list
+    +handle_events()
+    +update()
+    +draw()
+    +run()
+}
+
+' Relationships
+Entity --> Stats : has
+Player --> Character : active_character
+Player --> KeyboardInput : keyboard
+Player --> MouseInput : mouse
+Game --> Player : player
+Game --> PlayerController : player_controller
+KeyboardInput --> KeyBinding : uses
+MouseInput --> MouseButtonBinding : uses
+
+@enduml
