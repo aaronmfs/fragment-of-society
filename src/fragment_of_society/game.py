@@ -1,84 +1,84 @@
-# import pygame
-# from fragment_of_society.entities.player import Player
-# from fragment_of_society.entities.enemy import Enemy
-#
-# class Game:
-#     def __init__(self) -> None:
-#         pygame.init()
-#         self.screen = pygame.display.set_mode((1280, 720))
-#         pygame.display.set_caption("Fragment of Society")
-#         self.clock = pygame.time.Clock()
-#         self.running = True
-#         self.dt = 0.0
-#
-#         cx = self.screen.get_width() / 2
-#         cy = self.screen.get_height() / 2
-#         self.player = Player(cx, cy)
-#         self.enemies: list[Enemy] = [Enemy(200, 200), Enemy(900, 400)]
-#         self.entities = [self.player, *self.enemies]
-#
-#     def handle_events(self) -> None:
-#         for event in pygame.event.get():
-#             if event.type == pygame.QUIT:
-#                 self.running = False
-#
-#     def update(self) -> None:
-#         for entity in self.entities:
-#             entity.update(self.dt)
-#
-#     def draw(self) -> None:
-#         self.screen.fill("purple")
-#         for entity in self.entities:
-#             entity.draw(self.screen)
-#         pygame.display.flip()
-#
-#     def run(self) -> None:
-#         while self.running:
-#             self.handle_events()
-#             self.update()
-#             self.draw()
-#             self.dt = self.clock.tick(60) / 1000
-#
-#         pygame.quit()
-
-# Example file showing a circle moving on screen
 import pygame
+from fragment_of_society.entities.character import Character
+from fragment_of_society.systems.utilities.controller import Controller
 
-# pygame setup
 pygame.init()
-screen = pygame.display.set_mode((1280, 720))
-clock = pygame.time.Clock()
-running = True
-dt = 0
 
-player_pos = pygame.Vector2(screen.get_width() / 2, screen.get_height() / 2)
+# ================================================================
+# ===================== GAME CLASS DEFINITION ====================
+# ================================================================
+# This class contains the entire game structure.
+# It stores the screen, clock, game objects, and the main loop.
+# ================================================================
+class Game:
+    def __init__(self):
+        # ===================== DISPLAY SETUP =====================
+        self.screen = pygame.display.set_mode((1280, 720))
+        pygame.display.set_caption("Fragment of Society")
+        self.clock = pygame.time.Clock()
+        self.running = True
+        self.dt = 0.0
 
-while running:
-    # poll for events
-    # pygame.QUIT event means the user clicked X to close your window
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
+        #################################################################
+        # ===================== GAME OBJECT CREATION ====================
+        #################################################################
+        # Create all game objects here.
+        # Example: player, enemies, NPCs, UI elements, etc.
+        #################################################################
+        cx = self.screen.get_width() / 2
+        cy = self.screen.get_height() / 2
+        self.character = Character("Randogs", x=cx, y=cy)
+        self.controller = Controller(self.character)
 
-    # fill the screen with a color to wipe away anything from last frame
-    screen.fill("purple")
 
-    pygame.draw.circle(screen, "red", player_pos, 40)
+    # ================================================================
+    # ========================= EVENT HANDLER ========================
+    # ================================================================
+    # Responsible for reading player input and system events.
+    # Example: keyboard input, mouse input, closing the window.
+    # ================================================================
+    def handle_events(self):
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                self.running = False
 
-    keys = pygame.key.get_pressed()
-    if keys[pygame.K_w]:
-        player_pos.y -= 300 * dt
-    if keys[pygame.K_s]:
-        player_pos.y += 300 * dt
-    if keys[pygame.K_a]:
-        player_pos.x -= 300 * dt
-    if keys[pygame.K_d]:
-        player_pos.x += 300 * dt
 
-    # flip() the display to put your work on screen
-    pygame.display.flip()
+    # ================================================================
+    # ========================== GAME UPDATE =========================
+    # ================================================================
+    # Update game logic here.
+    # Example: movement, physics, AI, cooldown timers.
+    # ================================================================
+    def update(self):
+        self.controller.update(dt=self.dt)
 
-    # limits FPS to 60
-    # dt is delta time in seconds since last frame, used for framerate-
-    # independent physics.
-    dt = clock.tick(60) / 1000
+
+    # ================================================================
+    # =========================== DRAWING ============================
+    # ================================================================
+    # All rendering happens here.
+    # Clear the screen, draw objects, then update the display.
+    # ================================================================
+    def draw(self):
+        self.screen.fill("purple")
+        pygame.draw.circle(self.screen, "red", self.character.pos, 40)
+        pygame.display.flip()
+
+
+    # ================================================================
+    # =========================== MAIN LOOP ==========================
+    # ================================================================
+    # This runs the game forever until self.running becomes False.
+    # Order:
+    # 1. Handle input
+    # 2. Update game logic
+    # 3. Draw everything
+    # ================================================================
+    def run(self):
+        while self.running:
+            self.handle_events()
+            self.update()
+            self.draw()
+            self.dt = self.clock.tick(60) / 1000
+
+        pygame.quit()
