@@ -1,10 +1,4 @@
 import pygame
-
-
-# from fragment_of_society.entities.entity import Entity
-# from fragment_of_society.components.stats import Stats
-
-
 from fragment_of_society.entities.generic import Generic
 from fragment_of_society.controllers.player_controller import PlayerController
 
@@ -33,16 +27,9 @@ class Game:
         #################################################################
         cx = self.screen.get_width() / 2
         cy = self.screen.get_height() / 2
-
-
-        # playerstats = Stats(10, 5, 10)
-        # enemystats = Stats(10, 5, 10)
-        # self.character = Entity(playerstats, cx, cy)
-        # self.enemy = Entity(enemystats, 100, 100)
-
-
         self.character = Generic(x=cx, y=cy)
         self.player_controller = PlayerController(self.character)
+        self.events = []
 
 
     # ================================================================
@@ -52,7 +39,8 @@ class Game:
     # Example: keyboard input, mouse input, closing the window.
     # ================================================================
     def handle_events(self):
-        for event in pygame.event.get():
+        self.events = pygame.event.get()
+        for event in self.events:
             if event.type == pygame.QUIT:
                 self.running = False
 
@@ -64,18 +52,7 @@ class Game:
     # Example: movement, physics, AI, cooldown timers.
     # ================================================================
     def update(self):
-        # keys = pygame.key.get_pressed()
-        #
-        # if keys[pygame.K_w]:
-        #     self.character.pos.y -= 300 * self.dt
-        # if keys[pygame.K_s]:
-        #     self.character.pos.y += 300 * self.dt
-        # if keys[pygame.K_a]:
-        #     self.character.pos.x -= 300 * self.dt
-        # if keys[pygame.K_d]:
-        #     self.character.pos.x += 300 * self.dt
-
-        self.player_controller.update(dt=self.dt)
+        self.player_controller.update(dt=self.dt, events=self.events)
 
 
     # ================================================================
@@ -87,7 +64,6 @@ class Game:
     def draw(self):
         self.screen.fill("purple")
         pygame.draw.circle(self.screen, "red", self.character.pos, 40)
-        # pygame.draw.circle(self.screen, "blue", self.enemy.pos, 40)
         pygame.display.flip()
 
 
