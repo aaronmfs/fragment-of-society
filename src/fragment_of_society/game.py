@@ -1,6 +1,6 @@
 import pygame
 from fragment_of_society.entities.character import Character
-from fragment_of_society.controllers.player_controller import Controller
+from fragment_of_society.controllers.player_controller import PlayerController
 
 pygame.init()
 
@@ -28,7 +28,7 @@ class Game:
         cx = self.screen.get_width() / 2
         cy = self.screen.get_height() / 2
         self.character = Character("Randogs", x=cx, y=cy)
-        self.controller = Controller(self.character)
+        self.player_controller = PlayerController(self.character)
 
 
     # ================================================================
@@ -50,7 +50,7 @@ class Game:
     # Example: movement, physics, AI, cooldown timers.
     # ================================================================
     def update(self):
-        self.controller.update(dt=self.dt)
+        self.player_controller.update(dt=self.dt)
 
 
     # ================================================================

@@ -1,7 +1,7 @@
 import pygame
 from fragment_of_society.entities.character import Character
 
-class Controller:
+class PlayerController:
     def __init__(self, character: Character) -> None:
         self.character = character
 
@@ -9,11 +9,17 @@ class Controller:
         keys = pygame.key.get_pressed()
         final_speed = self.character.speed * ( 1 + self.character.stats.speed / 100 )
 
+        move_vec = pygame.math.Vector2(0, 0)
         if keys[pygame.K_w]:
-            self.character.pos.y -= final_speed * dt
+            move_vec.y -= 1
         if keys[pygame.K_s]:
-            self.character.pos.y += final_speed * dt
+            move_vec.y += 1
         if keys[pygame.K_a]:
-            self.character.pos.x -= final_speed * dt
+            move_vec.x -= 1
         if keys[pygame.K_d]:
-            self.character.pos.x += final_speed * dt
+            move_vec.x += 1
+
+        if move_vec.length_squared() > 0:
+            move_vec.normalize_ip()
+
+        self.character.pos += move_vec * final_speed * dt
