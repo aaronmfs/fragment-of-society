@@ -1,4 +1,5 @@
-from fragment_of_society.entities.entity import Entity, Stats
+from fragment_of_society.entities.entity import Entity
+from fragment_of_society.components.stats import Stats
 
 class Character(Entity):
     def __init__(self,

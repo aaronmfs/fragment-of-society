@@ -1,15 +1,5 @@
 import pygame
-# from fragment_of_society.systems.stats import Stats
-from dataclasses import dataclass
-
-@dataclass
-class Stats:
-    hp: int
-    stamina: int
-    attack: int
-    defense: int
-    speed: int
-    agility: int
+from fragment_of_society.components.stats import Stats
 
 class Entity:
     def __init__(self,

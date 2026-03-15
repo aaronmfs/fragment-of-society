@@ -1,6 +1,6 @@
 import pygame
 from fragment_of_society.entities.character import Character
-from fragment_of_society.systems.utilities.controller import Controller
+from fragment_of_society.controllers.player_controller import Controller
 
 pygame.init()
 
