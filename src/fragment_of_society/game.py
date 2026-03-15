@@ -1,4 +1,5 @@
 import pygame
+from fragment_of_society.entities.player import Player
 from fragment_of_society.entities.generic import Generic
 from fragment_of_society.controllers.player_controller import PlayerController
 
@@ -27,8 +28,8 @@ class Game:
         #################################################################
         cx = self.screen.get_width() / 2
         cy = self.screen.get_height() / 2
-        self.character = Generic(x=cx, y=cy)
-        self.player_controller = PlayerController(self.character)
+        self.player = Player("Sinay", 0, active_character=Generic(cx, cy))
+        self.player_controller = PlayerController(self.player)
         self.events = []
 
 
@@ -52,7 +53,8 @@ class Game:
     # Example: movement, physics, AI, cooldown timers.
     # ================================================================
     def update(self):
-        self.player_controller.update(dt=self.dt, events=self.events)
+        self.player.update(self.events)
+        self.player_controller.update(dt=self.dt)
 
 
     # ================================================================
@@ -63,7 +65,7 @@ class Game:
     # ================================================================
     def draw(self):
         self.screen.fill("purple")
-        pygame.draw.circle(self.screen, "red", self.character.pos, 40)
+        pygame.draw.circle(self.screen, "red", self.player.active_character.pos, 40)
         pygame.display.flip()
 
 
