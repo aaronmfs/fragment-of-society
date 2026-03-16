@@ -1,7 +1,7 @@
-from fragment_of_society.entities.player import Player
+from fragment_of_society.player.player_account import PlayerAccount
 
 class PlayerController:
-    def __init__(self, player: Player) -> None:
+    def __init__(self, player: PlayerAccount) -> None:
         self.player = player
         self.character = player.active_character
 
@@ -9,7 +9,7 @@ class PlayerController:
         keyboard = self.player.keyboard
         # mouse = self.player.mouse
 
-        final_speed = self.character.speed * ( 1 + self.character.stats.speed / 100 )
+        final_speed = 650 * ( 1 + self.character.stats.speed / 100 )
 
         move_vec = keyboard.get_movement_vector()
 
