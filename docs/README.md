@@ -1,19 +1,44 @@
-# Fragment of Society - Documentation
+# Fragment of Society - Features
 
-## Project Structure
+## Completed Features
+
+| Feature | Status |
+|---------|--------|
+| Entity System | ✅ Done |
+| Character System | ✅ Done |
+| Player Account | ✅ Done |
+| Input System | ✅ Done |
+| Player Controller | ✅ Done |
+| Hitbox | ✅ Done |
+| AttackHitbox | ✅ Done |
+| Basic Enemy | ✅ Done |
+| Collision Detection | ✅ Done |
+
+## Planned Features
+
+| Feature | Status | Description |
+|---------|--------|-------------|
+| Renderer | 🔲 TODO | Base renderer class for drawing entities |
+| Camera System | 🔲 TODO | Camera for larger worlds |
+| Attack System | 🔲 TODO | Attack cooldowns, damage calculation |
+| Enemy AI | 🔲 TODO | Basic enemy AI behaviors |
+| Inventory System | 🔲 TODO | Player inventory management |
+| Map/Level System | 🔲 TODO | Level loading and management |
+| UI System | 🔲 TODO | Health bars, menus, HUD |
+| Sound System | 🔲 TODO | Audio management |
+| Particle Effects | 🔲 TODO | Visual effects |
+
+## Feature Progress
 
 ```
-src/fragment_of_society/
-├── components/       # Game components (Stats)
-├── entities/         # Game entities (Entity, Character, Player)
-├── controllers/     # Input/controllers
-├── input/           # Input handling
-├── systems/         # Game systems (TODO)
-└── renderers/       # Rendering (TODO)
+Completed:  9/17 (53%)
+Remaining:  8/17 (47%)
 ```
 
-## Resources
+---
 
-- [Game Documentation](./GAME_DOCUMENTATION.md) - Comprehensive guide
-- [Features to Add](./FEATURES_TO_ADD.md) - Planned features
+## Quick Links
+
+- [Game Documentation](./GAME_DOCUMENTATION.md)
 - [UML Class Diagrams](./UMLClass/)
+- [GitHub Repository](https://github.com/anomalyco/team-sanction)
