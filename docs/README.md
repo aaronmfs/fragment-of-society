@@ -6,11 +6,9 @@
 |---------|--------|
 | Entity System | ✅ Done |
 | Character System | ✅ Done |
-| Player Account | ✅ Done |
-| Input System | ✅ Done |
-| Player Controller | ✅ Done |
-| Hitbox | ✅ Done |
-| AttackHitbox | ✅ Done |
+| Player(Account and Controller) | ✅ Done |
+| Input System(Keyboard and Mouse) | ✅ Done |
+| Hitbox(Entity, Attack, and Blocks) | ✅ Done |
 | Basic Enemy | ✅ Done |
 | Collision Detection | ✅ Done |
 
@@ -22,7 +20,6 @@
 | Camera System | 🔲 TODO | Camera for larger worlds |
 | Attack System | 🔲 TODO | Attack cooldowns, damage calculation |
 | Enemy AI | 🔲 TODO | Basic enemy AI behaviors |
-| Inventory System | 🔲 TODO | Player inventory management |
 | Map/Level System | 🔲 TODO | Level loading and management |
 | UI System | 🔲 TODO | Health bars, menus, HUD |
 | Sound System | 🔲 TODO | Audio management |
