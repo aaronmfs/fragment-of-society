@@ -9,6 +9,7 @@ classDiagram
             -events
             +player
             +player_controller
+            +enemy
             +handle_events()
             +update()
             +draw()
@@ -22,11 +23,14 @@ classDiagram
             -stats
             -pos
             -_hp
+            -hitbox
+            -hitboxes
             +hp
             +update()
             +take_damage()
             +heal()
             +is_alive()
+            +get_hitbox_rect()
         }
         
         class Character {
@@ -34,7 +38,13 @@ classDiagram
             +speed
         }
         
-        class Generic
+        class Generic {
+            DEFAULT_HITBOX
+        }
+
+        class GenericEnemy {
+            +name
+        }
     }
 
     namespace Components {
@@ -48,6 +58,45 @@ classDiagram
         class MageStats {
             +mana
             +magic_damage
+        }
+
+        class Hitbox {
+            -width
+            -height
+            -offset_x
+            -offset_y
+            -_parent_pos
+            +set_parent()
+            +get_rect()
+            +get_center()
+            +move()
+            +collides_with()
+            +contains_point()
+            +draw()
+        }
+
+        class HitboxGroup {
+            -hitboxes
+            +add()
+            +remove()
+            +clear()
+            +get_rects()
+            +collides_with()
+            +collides_with_group()
+            +draw()
+        }
+
+        class AttackHitbox {
+            -duration
+            -damage
+            -knockback
+            -elapsed_time
+            -_active
+            +activate()
+            +deactivate()
+            +update()
+            +is_active()
+            +draw()
         }
         
         class KeyBinding {
@@ -104,7 +153,7 @@ classDiagram
     }
 
     namespace Controllers {
-        class Player {
+        class PlayerAccount {
             +account_name
             +coins
             +active_character
@@ -123,16 +172,21 @@ classDiagram
     %% Inheritance
     MageStats --|> Stats : extends
     Entity <|-- Character : inherits
+    Entity <|-- GenericEnemy : inherits
     Character <|-- Generic : inherits
+    Hitbox <|-- AttackHitbox : extends
 
     %% Composition/Aggregation
-    Game *-- Player : owns
+    Game *-- PlayerAccount : owns
     Game *-- PlayerController : owns
-    Player *-- Character : owns
-    Player *-- KeyboardInput : owns
-    Player *-- MouseInput : owns
-    PlayerController --> Player : controls
+    Game *-- GenericEnemy : owns
+    PlayerAccount *-- Character : owns
+    PlayerAccount *-- KeyboardInput : owns
+    PlayerAccount *-- MouseInput : owns
+    PlayerController --> PlayerAccount : controls
     Entity *-- Stats : owns
+    Entity *-- Hitbox : owns
+    Entity *-- HitboxGroup : owns
     KeyboardInput *-- KeyBinding : owns
     MouseInput *-- MouseButtonBinding : owns
 ```

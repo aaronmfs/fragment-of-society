@@ -39,12 +39,19 @@ team-sanction/
 ├── src/
 │   └── fragment_of_society/
 │       ├── components/
-│       │   └── stats.py          # Stats dataclass for entities
+│       │   ├── __init__.py
+│       │   ├── stats.py          # Stats dataclass for entities
+│       │   └── hitbox.py         # Hitbox, HitboxGroup, AttackHitbox
 │       ├── entities/
-│       │   ├── entity.py         # Base Entity class
+│       │   └── entity.py         # Base Entity class
+│       ├── player/
+│       │   ├── player_account.py # Player account (manages character + input)
 │       │   ├── character.py      # Character class (extends Entity)
-│       │   ├── generic.py        # Generic NPC class (extends Character)
-│       │   └── player.py         # Player class (manages character + input)
+│       │   └── characters/
+│       │       ├── __init__.py
+│       │       └── generic.py   # Generic character type (extends Character)
+│       ├── enemies/
+│       │   └── generic_enemy.py  # Generic enemy (extends Entity)
 │       ├── controllers/
 │       │   └── player_controller.py  # Handles player movement
 │       ├── input/
@@ -55,7 +62,7 @@ team-sanction/
 │       └── main.py               # Entry point
 ├── docs/
 │   ├── README.md                 # Quick reference
-│   ├── FEATURES_TO_ADD.md        # Planned features
+│   ├── FEATURES_TO_ADD.md       # Planned features
 │   └── UMLClass/                 # UML diagrams
 └── README.md                     # Project readme
 ```
@@ -70,13 +77,14 @@ The game uses a simple Entity-Component pattern:
 
 ```
 Entity (base class)
-    └── Character (adds name, speed)
-            └── Generic (specific character type)
+    ├── Character (player characters)
+    │       └── Generic (specific character type)
+    └── GenericEnemy (enemies)
 ```
 
 ### Key Design Patterns
 
-1. **Component Pattern:** Stats are passed as separate objects to entities
+1. **Component Pattern:** Stats and Hitboxes are passed as separate objects to entities
 2. **Controller Pattern:** PlayerController handles input-to-movement translation
 3. **Input Abstraction:** Keyboard and Mouse are abstracted into separate classes
 
@@ -124,12 +132,15 @@ Base class for all game objects that have health.
 - `stats`: Stats object
 - `pos`: Position (pygame.Vector2)
 - `hp`: Current health (property with getter/setter)
+- `hitbox`: Optional Hitbox for collision detection
+- `hitboxes`: HitboxGroup containing all hitboxes
 
 **Methods:**
 - `update(dt)`: Override for per-frame logic
 - `take_damage(amount)`: Reduce HP
 - `heal(amount)`: Increase HP (capped at max_hp)
 - `is_alive()`: Check if HP > 0
+- `get_hitbox_rect()`: Get pygame.Rect for collision
 
 **HP Property Logic:**
 ```python
@@ -140,29 +151,33 @@ def hp(self, value: int) -> None:
 
 ---
 
-### 3. Character (`entities/character.py`)
+### 3. Character (`player/character.py`)
 
-Extends Entity with character-specific attributes.
+Extends Entity with character-specific attributes for player characters.
 
 **Properties:**
 - `name`: Character name
 - `speed`: Movement speed in pixels/second
 
----
-
-### 4. Generic (`entities/generic.py`)
-
-A basic NPC/enemy class extending Character. Used as a template for creating new character types.
-
+**Constructor:**
 ```python
-class Generic(Character):
-    def __init__(self, x, y, name="Generic", stats=Stats(10, 10, 10, 30)):
-        super().__init__(name, stats, x, y)
+def __init__(self, name: str, stats: Stats, speed: float = 650, x: float = 0, y: float = 0, hitbox = None):
 ```
 
 ---
 
-### 5. Player (`entities/player.py`)
+### 4. Generic (`player/characters/generic.py`)
+
+A basic player character class extending Character. Used as the default character.
+
+```python
+class Generic(Character):
+    def __init__(self, x, y, name="Generic", stats=None, hitbox=None, speed=30):
+```
+
+---
+
+### 5. PlayerAccount (`player/player_account.py`)
 
 Manages player account data and input handling.
 
@@ -175,6 +190,69 @@ Manages player account data and input handling.
 
 **Methods:**
 - `update(events)`: Update input states
+
+---
+
+### 6. GenericEnemy (`enemies/generic_enemy.py`)
+
+A basic enemy class extending Entity. Used as a template for creating enemies.
+
+```python
+class GenericEnemy(Entity):
+    def __init__(self, name="Generic Enemy", stats=None, x=0, y=0, hitbox=None):
+```
+
+---
+
+### 7. Hitbox (`components/hitbox.py`)
+
+Collision detection component that can be attached to entities.
+
+**Properties:**
+- `width`: Hitbox width
+- `height`: Hitbox height
+- `offset_x`: X offset from entity position
+- `offset_y`: Y offset from entity position
+
+**Methods:**
+- `set_parent(pos)`: Link hitbox to entity position
+- `get_rect()`: Get pygame.Rect for collision
+- `get_center()`: Get center position as Vector2
+- `collides_with(other)`: Check collision with another Hitbox
+- `contains_point(x, y)`: Check if point is inside
+- `draw(surface, color, width)`: Draw hitbox outline (debug)
+
+---
+
+### 8. HitboxGroup (`components/hitbox.py`)
+
+Group of hitboxes for entities with multiple collision areas.
+
+**Methods:**
+- `add(hitbox)`: Add hitbox to group
+- `remove(hitbox)`: Remove hitbox from group
+- `clear()`: Remove all hitboxes
+- `collides_with(hitbox)`: Check if any hitbox collides
+- `collides_with_group(other_group)`: Check collision with another group
+- `draw(surface, color, width)`: Draw all hitboxes
+
+---
+
+### 9. AttackHitbox (`components/hitbox.py`)
+
+Temporary hitbox for melee attacks with damage and knockback.
+
+**Properties:**
+- `duration`: How long the hitbox lasts (seconds)
+- `damage`: Damage dealt on hit
+- `knockback`: Knockback force
+
+**Methods:**
+- `activate()`: Start the attack
+- `deactivate()`: End the attack early
+- `update(dt)`: Update timer, returns True if still active
+- `is_active()`: Check if attack is ongoing
+- `draw(surface, color, width)`: Only draws when active
 
 ---
 
@@ -281,21 +359,37 @@ Handles mouse buttons and position.
 
 ### 1. Adding a New Character Type
 
-Create a new file in `entities/`:
+Create a new file in `player/characters/`:
 
 ```python
-# entities/warrior.py
-from fragment_of_society.entities.character import Character
+# player/characters/warrior.py
+from fragment_of_society.player.character import Character
 from fragment_of_society.components.stats import Stats
 
 class Warrior(Character):
-    def __init__(self, x, y, name="Warrior", stats=None):
+    def __init__(self, x, y, name="Warrior", stats=None, hitbox=None, speed=50):
         if stats is None:
             stats = Stats(max_hp=100, attack=15, defense=10, speed=20)
-        super().__init__(name, stats, x=y, y=y)
+        super().__init__(name, stats, speed, x, y, hitbox)
 ```
 
-### 2. Adding a New Component
+### 2. Adding a New Enemy Type
+
+Create a new file in `enemies/`:
+
+```python
+# enemies/slime.py
+from fragment_of_society.components import Stats, Hitbox
+from fragment_of_society.enemies.generic_enemy import GenericEnemy
+
+class Slime(GenericEnemy):
+    def __init__(self, x, y):
+        stats = Stats(max_hp=30, attack=5, defense=2, speed=15)
+        hitbox = Hitbox(width=30, height=30)
+        super().__init__(name="Slime", stats=stats, x=x, y=y, hitbox=hitbox)
+```
+
+### 3. Adding a New Component
 
 Create a new file in `components/`:
 
@@ -319,7 +413,7 @@ class Inventory:
         return False
 ```
 
-### 3. Adding a New System
+### 4. Adding a New System
 
 Create a new file in `systems/`:
 
@@ -334,7 +428,7 @@ class CombatSystem:
         target.take_damage(max(1, damage))  # Minimum 1 damage
 ```
 
-### 4. Adding a New Renderer
+### 5. Adding a New Renderer
 
 Create a new file in `renderers/`:
 
@@ -386,10 +480,12 @@ See [FEATURES_TO_ADD.md](./FEATURES_TO_ADD.md) for detailed information on plann
 
 | Feature | Status |
 |---------|--------|
-| Hitbox | TODO |
+| Hitbox | ✅ DONE |
+| AttackHitbox | ✅ DONE |
 | Renderer | TODO |
 | Attack System | TODO |
-| AttackHitbox | TODO |
+| Camera System | TODO |
+| Enemy AI | TODO |
 
 ---
 
