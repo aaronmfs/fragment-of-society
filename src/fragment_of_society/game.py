@@ -1,6 +1,7 @@
 import pygame
-from fragment_of_society.entities.player import Player
-from fragment_of_society.entities.generic import Generic
+from fragment_of_society.components.hitbox import Hitbox
+from fragment_of_society.player.player_account import PlayerAccount
+from fragment_of_society.player.characters import Generic
 from fragment_of_society.controllers.player_controller import PlayerController
 
 pygame.init()
@@ -28,7 +29,7 @@ class Game:
         #################################################################
         cx = self.screen.get_width() / 2
         cy = self.screen.get_height() / 2
-        self.player = Player("Sinay", 0, active_character=Generic(cx, cy))
+        self.player = PlayerAccount("Sinay", 0, active_character=Generic(cx, cy))
         self.player_controller = PlayerController(self.player)
         self.events = []
 
@@ -66,6 +67,7 @@ class Game:
     def draw(self):
         self.screen.fill("purple")
         pygame.draw.circle(self.screen, "red", self.player.active_character.pos, 40)
+        self.player.active_character.hitbox.draw(self.screen)
         pygame.display.flip()
 
 
@@ -79,6 +81,8 @@ class Game:
     # 3. Draw everything
     # ================================================================
     def run(self):
+        print(self.player.active_character)
+
         while self.running:
             self.handle_events()
             self.update()

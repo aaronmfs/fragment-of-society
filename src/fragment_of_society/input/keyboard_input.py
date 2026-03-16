@@ -1,3 +1,4 @@
+# NOTE: MADE by AI
 import pygame
 from typing import Dict, Callable, Optional
 from dataclasses import dataclass, field
