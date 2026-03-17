@@ -1,8 +1,8 @@
 import pygame
-from fragment_of_society.components.hitbox import Hitbox
+from fragment_of_society.enemies.generic_enemy import GenericEnemy
 from fragment_of_society.player.player_account import PlayerAccount
 from fragment_of_society.player.characters import Generic
-from fragment_of_society.controllers.player_controller import PlayerController
+from fragment_of_society.renderer import DebugRenderer
 
 pygame.init()
 
@@ -27,11 +27,35 @@ class Game:
         # Create all game objects here.
         # Example: player, enemies, NPCs, UI elements, etc.
         #################################################################
+        self.create_entity()
+        self.events = []
+
+
+
+
+    def create_entity(self):
         cx = self.screen.get_width() / 2
         cy = self.screen.get_height() / 2
+
+        self.debug_renderer = DebugRenderer(self.screen)
+
         self.player = PlayerAccount("Sinay", 0, active_character=Generic(cx, cy))
-        self.player_controller = PlayerController(self.player)
-        self.events = []
+
+        self.enemy = GenericEnemy(x=cx, y=cy)
+
+    def check_collision(self):
+        if self.enemy.hitbox and self.player.active_character.hitboxes.collides_with(self.enemy.hitbox):
+            print(f"Collision! with {self.enemy.name}")
+
+    def draw_debug_hitbox(self):
+        self.debug_renderer.draw_all_hitboxes([self.player.active_character, self.enemy])
+
+    def draw_entities(self):
+        pygame.draw.circle(self.screen, "red", self.player.active_character.pos, 40)
+        pygame.draw.circle(self.screen, "blue", self.enemy.pos, 40)
+
+
+
 
 
     # ================================================================
@@ -54,8 +78,8 @@ class Game:
     # Example: movement, physics, AI, cooldown timers.
     # ================================================================
     def update(self):
-        self.player.update(self.events)
-        self.player_controller.update(dt=self.dt)
+        self.player.update(self.events, self.dt)
+        self.check_collision()
 
 
     # ================================================================
@@ -66,8 +90,8 @@ class Game:
     # ================================================================
     def draw(self):
         self.screen.fill("purple")
-        pygame.draw.circle(self.screen, "red", self.player.active_character.pos, 40)
-        self.player.active_character.hitbox.draw(self.screen)
+        self.draw_entities()
+        self.draw_debug_hitbox()
         pygame.display.flip()
 
 
