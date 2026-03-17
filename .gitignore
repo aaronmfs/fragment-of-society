@@ -97,3 +97,5 @@ desktop.ini
 # ==============================================================================
 # docker
 docker-compose.yml
+# opencode
+.opencode
