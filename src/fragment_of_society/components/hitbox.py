@@ -72,7 +72,7 @@ class HitboxGroup:
     def clear(self) -> None:
         self.hitboxes.clear()
 
-    def get_rects(self) -> List[pygame.Rect]:
+    def get_rects(self) -> List[Optional[pygame.Rect]]:
         return [hb.get_rect() for hb in self.hitboxes if hb.get_rect()]
 
     def collides_with(self, other: Hitbox) -> bool:
