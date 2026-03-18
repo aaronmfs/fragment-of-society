@@ -1,41 +1,96 @@
-# Fragment of Society - Features
+# Fragment of Society - Documentation
 
-## Completed Features
+## Quick Links
+
+- [Systems Documentation](./Systems/OVERVIEW.md) - Architecture and how-to guides
+- [Input System](./Systems/INPUT.md) - Keyboard and mouse input
+- [Entity System](./Systems/ENTITY.md) - Entities, characters, controllers
+- [Game Engine](./Systems/GAMEENGINE.md) - Core game logic for RL
+
+---
+
+## Project Overview
+
+**Fragment of Society** is a 2D top-down dungeon crawler built with Python/Pygame. Designed for both human playability and RL training.
+
+### Architecture
+
+```
+┌─────────────────────┐     ┌─────────────────────┐
+│   game.py           │────▶│   GameEngine        │
+│  (Pygame Adapter)   │     │  (Pure Python)      │
+└─────────────────────┘     └─────────────────────┘
+```
+
+- **game.py** - Pygame layer (window, rendering, input)
+- **game_engine.py** - Pure Python game logic (RL-friendly)
+- **input/** - pygame-free keyboard/mouse handling
+- **entities/** - Base entity classes
+
+---
+
+## Key Features
 
 | Feature | Status |
 |---------|--------|
 | Entity System | ✅ Done |
 | Character System | ✅ Done |
-| Player(Account and Controller) | ✅ Done |
-| Input System(Keyboard and Mouse) | ✅ Done |
-| Hitbox(Entity, Attack, and Blocks) | ✅ Done |
-| Basic Enemy | ✅ Done |
-| Collision Detection | ✅ Done |
+| Player Account & Controller | ✅ Done |
+| Input System (Keyboard/Mouse) | ✅ Done |
+| Game Engine (RL-ready) | ✅ Done |
+
+---
 
 ## Planned Features
 
-| Feature | Status | Description |
-|---------|--------|-------------|
-| Renderer | 🔲 TODO | Base renderer class for drawing entities |
-| Camera System | 🔲 TODO | Camera for larger worlds |
-| Attack System | 🔲 TODO | Attack cooldowns, damage calculation |
-| Enemy AI | 🔲 TODO | Basic enemy AI behaviors |
-| Map/Level System | 🔲 TODO | Level loading and management |
-| UI System | 🔲 TODO | Health bars, menus, HUD |
-| Sound System | 🔲 TODO | Audio management |
-| Particle Effects | 🔲 TODO | Visual effects |
+| Feature | Status |
+|---------|--------|
+| Renderer | 🔲 TODO |
+| Camera System | 🔲 TODO |
+| Attack System | 🔲 TODO |
+| Enemy AI | 🔲 TODO |
+| Map/Level System | 🔲 TODO |
+| UI System | 🔲 TODO |
 
-## Feature Progress
+---
 
+## For RL Developers
+
+```python
+from fragment_of_society.game_engine import GameEngine
+from fragment_of_society.input import KeyboardInput, MouseInput
+
+engine = GameEngine()
+keyboard = KeyboardInput()
+mouse = MouseInput()
+
+# Get state
+state = engine.get_state()
+# {"player_x": ..., "player_y": ..., "player_hp": ..., "player_max_hp": ...}
+
+# Step
+engine.update(keyboard, mouse, [], dt)
 ```
-Completed:  9/17 (53%)
-Remaining:  8/17 (47%)
+
+See [GameEngine](./Systems/GAMEENGINE.md) for full RL integration guide.
+
+---
+
+## Running the Game
+
+```bash
+cd src
+python -m fragment_of_society.main
+```
+
+Or:
+
+```bash
+python src/fragment_of_society/main.py
 ```
 
 ---
 
-## Quick Links
+## GitHub
 
-- [Game Documentation](./GAME_DOCUMENTATION.md)
-- [UML Class Diagrams](./UMLClass/)
-- [GitHub Repository](https://github.com/anomalyco/team-sanction)
+[Repository](https://github.com/aaronmfs/team-sanction)
