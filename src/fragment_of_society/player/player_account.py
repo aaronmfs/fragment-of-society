@@ -14,9 +14,7 @@ class PlayerAccount:
         self.account_name = account_name
         self.coins = coins
         self.active_character = active_character
-        self.keyboard = KeyboardInput()
-        self.mouse = MouseInput()
         self.player_controller = PlayerController(self.active_character)
 
-    def update(self, events: list, dt: float) -> None:
-        self.player_controller.update(events, dt, self.keyboard, self.mouse)
+    def update(self, keyboard: KeyboardInput, mouse: MouseInput, events: list, dt: float) -> None:
+        self.player_controller.update(keyboard, mouse, events, dt)

@@ -7,7 +7,12 @@ class Stats:
     defense: int
     speed: int
 
-@dataclass
+    def get_damageReduction(self, incoming: int) -> int:
+        return max(1, incoming - self.defense)
+
+    # def buff(self) -> int:
+    #     return None
+
 class MageStats(Stats):
     mana: int
     magic_damage: int

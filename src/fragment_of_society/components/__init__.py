@@ -1,2 +1,2 @@
-from .hitbox import Hitbox, HitboxGroup, AttackHitbox
 from .stats import Stats
+from .hitbox import Hitbox, AttackHitbox

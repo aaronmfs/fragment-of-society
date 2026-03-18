@@ -1,17 +1,16 @@
 from fragment_of_society.entities.entity import Entity
-from fragment_of_society.components import Stats, Hitbox
+from fragment_of_society.components import Stats
 
 class Character(Entity):
     def __init__(
             self,
             name: str,
             stats: Stats,
-            hitbox: Hitbox,
             x: float = 0,
             y: float = 0
             ) -> None:
 
-        super().__init__(x, y, stats, hitbox)
+        super().__init__(x, y, stats)
         self.name = name
 
 
