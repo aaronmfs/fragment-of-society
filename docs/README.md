@@ -17,15 +17,30 @@
 
 ```
 ┌─────────────────────┐     ┌─────────────────────┐
-│   game.py           │────▶│   GameEngine        │
-│  (Pygame Adapter)   │     │  (Pure Python)      │
+│   Game (Pygame)     │────▶│   GameEngine        │
+│  (Window, Render)   │     │  (Pure Python)      │
+└─────────────────────┘     └─────────────────────┘
+         │                          │
+         ▼                          ▼
+┌─────────────────────┐     ┌─────────────────────┐
+│   Renderers         │     │   Player/Entities   │
+│  Camera, Debug      │     │  Generic Character  │
+└─────────────────────┘     └─────────────────────┘
+         │
+         ▼
+┌─────────────────────┐     ┌─────────────────────┐
+│   Components        │     │   Inputs            │
+│  Stats, Hitbox     │     │  InputManager       │
 └─────────────────────┘     └─────────────────────┘
 ```
 
-- **game.py** - Pygame layer (window, rendering, input)
-- **game_engine.py** - Pure Python game logic (RL-friendly)
-- **input/** - pygame-free keyboard/mouse handling
-- **entities/** - Base entity classes
+- **Game** - Pygame layer (window, rendering, input handling)
+- **GameEngine** - Pure Python game logic (RL-friendly)
+- **PlayerController** - Player input handling and state
+- **Generic** - Base character class with movement, stats, hitbox
+- **Renderers** - Camera, debug rendering, hitbox visualization
+- **Components** - Stats, Hitbox (ECS-style component system)
+- **Inputs** - InputManager for keyboard/mouse handling
 
 ---
 
@@ -38,6 +53,10 @@
 | Player Account & Controller | ✅ Done |
 | Input System (Keyboard/Mouse) | ✅ Done |
 | Game Engine (RL-ready) | ✅ Done |
+| Renderer | ✅ Done |
+| Camera System | ✅ Done |
+| Skills System | ✅ Done |
+| Attack System | ✅ Done |
 
 ---
 
@@ -45,12 +64,10 @@
 
 | Feature | Status |
 |---------|--------|
-| Renderer | 🔲 TODO |
-| Camera System | 🔲 TODO |
-| Attack System | 🔲 TODO |
 | Enemy AI | 🔲 TODO |
 | Map/Level System | 🔲 TODO |
 | UI System | 🔲 TODO |
+| Sprite Renderer | 🔲 TODO |
 
 ---
 
@@ -58,18 +75,16 @@
 
 ```python
 from fragment_of_society.game_engine import GameEngine
-from fragment_of_society.input import KeyboardInput, MouseInput
+from fragment_of_society.inputs import InputManager
 
 engine = GameEngine()
-keyboard = KeyboardInput()
-mouse = MouseInput()
+input_manager = InputManager.get_instance()
 
-# Get state
-state = engine.get_state()
-# {"player_x": ..., "player_y": ..., "player_hp": ..., "player_max_hp": ...}
+# Get state - entities, player stats, positions
+state = engine.entities
 
-# Step
-engine.update(keyboard, mouse, [], dt)
+# Update with input and delta time
+engine.update(dt=0.016, camera_offset=(0, 0))
 ```
 
 See [GameEngine](./Systems/GAMEENGINE.md) for full RL integration guide.
