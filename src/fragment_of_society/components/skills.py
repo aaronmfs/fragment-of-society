@@ -18,6 +18,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import List, Tuple, Optional, Dict, Callable, Any, TYPE_CHECKING
 from enum import Enum, auto
+import math
 
 if TYPE_CHECKING:
     from fragment_of_society.components.hitbox import OBB
@@ -81,6 +82,114 @@ class SkillEffect:
         return 0, 0, []
 
 
+class TickEffectType(Enum):
+    DAMAGE = auto()
+    HEAL = auto()
+
+
+class PersistentSkillEffect:
+    def __init__(
+        self,
+        skill: Skill,
+        owner: Any,
+        x: float,
+        y: float,
+    ):
+        self.skill = skill
+        self.owner = owner
+        self.x = x
+        self.y = y
+        self.age = 0.0
+        self.last_tick = 0.0
+        self.hit_target_ids: set = field(default_factory=set)
+        self.alive = True
+        
+    @property
+    def alive_duration(self) -> float:
+        return self.skill.alive_duration
+    
+    @property
+    def tick_interval(self) -> float:
+        return self.skill.tick_interval
+    
+    @property
+    def tick_effect_type(self) -> TickEffectType:
+        return self.skill.tick_effect_type
+    
+    @property
+    def tick_value(self) -> float:
+        return self.skill.tick_value
+    
+    @property
+    def aoe_radius(self) -> float:
+        return self.skill.aoe_radius
+
+    def _calculate_tick_value(self) -> float:
+        value = self.tick_value
+        if self.skill.tick_scaling_stat and hasattr(self.owner, self.skill.tick_scaling_stat):
+            stat_value = getattr(self.owner, self.skill.tick_scaling_stat)
+            value *= (1 + stat_value / 100 * self.skill.tick_scaling_factor)
+        return value
+
+    def _get_targets_in_aoe(self, entities: List[Any]) -> List[Any]:
+        if self.aoe_radius <= 0:
+            return []
+        
+        targets = []
+        for entity in entities:
+            if entity.id == self.owner.id:
+                continue
+            if entity.id in self.hit_target_ids:
+                continue
+            dist = math.sqrt((entity.x - self.x) ** 2 + (entity.y - self.y) ** 2)
+            if dist <= self.aoe_radius:
+                targets.append(entity)
+        return targets
+
+    def tick(self, entities: List[Any]) -> Tuple[float, float]:
+        if self.tick_interval <= 0 or self.tick_value <= 0:
+            return 0.0, 0.0
+            
+        value = self._calculate_tick_value()
+        targets = self._get_targets_in_aoe(entities)
+        
+        total_damage = 0.0
+        total_healing = 0.0
+        
+        for target in targets:
+            self.hit_target_ids.add(target.id)
+            
+            if self.tick_effect_type == TickEffectType.DAMAGE:
+                if hasattr(target, "take_damage"):
+                    actual = target.take_damage(value)
+                    total_damage += actual
+            elif self.tick_effect_type == TickEffectType.HEAL:
+                if hasattr(target, "heal"):
+                    actual = target.heal(value)
+                    total_healing += actual
+        
+        return total_damage, total_healing
+
+    def update(self, dt: float, entities: List[Any]) -> Tuple[float, float]:
+        self.age += dt
+        
+        if self.alive_duration > 0 and self.age >= self.alive_duration:
+            self.alive = False
+            return 0.0, 0.0
+        
+        total_damage = 0.0
+        total_healing = 0.0
+        
+        if self.tick_interval > 0:
+            while self.last_tick + self.tick_interval <= self.age:
+                self.last_tick += self.tick_interval
+                dmg, heal = self.tick(entities)
+                total_damage += dmg
+                total_healing += heal
+        
+        return total_damage, total_healing
+
+
 @dataclass
 class ActionResult:
     damage_dealt: float = 0
@@ -109,6 +218,12 @@ class Skill:
         attack_height: float = 0,
         attack_offset_x: float = 0,
         attack_offset_y: float = 0,
+        alive_duration: float = 0,
+        tick_interval: float = 0,
+        tick_value: float = 0,
+        tick_effect_type: TickEffectType = TickEffectType.DAMAGE,
+        tick_scaling_stat: Optional[str] = None,
+        tick_scaling_factor: float = 1.0,
     ):
         self.name = name
         self.cooldown = cooldown
@@ -127,6 +242,12 @@ class Skill:
         self.attack_height = attack_height
         self.attack_offset_x = attack_offset_x
         self.attack_offset_y = attack_offset_y
+        self.alive_duration = alive_duration
+        self.tick_interval = tick_interval
+        self.tick_value = tick_value
+        self.tick_effect_type = tick_effect_type
+        self.tick_scaling_stat = tick_scaling_stat
+        self.tick_scaling_factor = tick_scaling_factor
 
     def can_use(self, user: Any) -> bool:
         if self.current_cooldown > 0:
@@ -205,6 +326,15 @@ class Skill:
             targets_hit=hit_count,
             resource_cost=self.cost,
         )
+
+    def create_persistent_effect(self, user: Any, x: float, y: float) -> Optional[PersistentSkillEffect]:
+        if self.alive_duration <= 0:
+            return None
+        return PersistentSkillEffect(skill=self, owner=user, x=x, y=y)
+
+    @property
+    def has_persistent_effect(self) -> bool:
+        return self.alive_duration > 0 and self.tick_interval > 0 and self.tick_value > 0
 
     def update(self, dt: float):
         if self.current_cooldown > 0:
@@ -400,7 +530,13 @@ class SkillBuilder:
         range: float = 100,
         cast_time: float = 0,
         channel_time: float = 0,
-        resource_type: str = "mp"
+        resource_type: str = "mp",
+        alive_duration: float = 0,
+        tick_interval: float = 0,
+        tick_value: float = 0,
+        tick_effect_type: TickEffectType = TickEffectType.DAMAGE,
+        tick_scaling_stat: Optional[str] = None,
+        tick_scaling_factor: float = 1.0,
     ) -> Skill:
         return Skill(
             name=name,
@@ -412,7 +548,71 @@ class SkillBuilder:
             range=range,
             cast_time=cast_time,
             channel_time=channel_time,
-            resource_type=resource_type
+            resource_type=resource_type,
+            alive_duration=alive_duration,
+            tick_interval=tick_interval,
+            tick_value=tick_value,
+            tick_effect_type=tick_effect_type,
+            tick_scaling_stat=tick_scaling_stat,
+            tick_scaling_factor=tick_scaling_factor,
+        )
+
+    @staticmethod
+    def tick_damage(
+        name: str,
+        tick_value: float,
+        alive_duration: float,
+        tick_interval: float = 1.0,
+        cost: float = 0,
+        cooldown: float = 1.0,
+        aoe_radius: float = 50,
+        scaling_stat: Optional[str] = "spell_power",
+        scaling_factor: float = 1.0,
+        range: float = 100,
+    ) -> Skill:
+        return Skill(
+            name=name,
+            cooldown=cooldown,
+            cost=cost,
+            effects=[],
+            target_type=TargetType.AREA_ENEMY,
+            aoe_radius=aoe_radius,
+            range=range,
+            alive_duration=alive_duration,
+            tick_interval=tick_interval,
+            tick_value=tick_value,
+            tick_effect_type=TickEffectType.DAMAGE,
+            tick_scaling_stat=scaling_stat,
+            tick_scaling_factor=scaling_factor,
+        )
+
+    @staticmethod
+    def tick_heal(
+        name: str,
+        tick_value: float,
+        alive_duration: float,
+        tick_interval: float = 1.0,
+        cost: float = 0,
+        cooldown: float = 1.0,
+        aoe_radius: float = 50,
+        scaling_stat: Optional[str] = "healing_power",
+        scaling_factor: float = 1.0,
+        range: float = 100,
+    ) -> Skill:
+        return Skill(
+            name=name,
+            cooldown=cooldown,
+            cost=cost,
+            effects=[],
+            target_type=TargetType.AREA_ALLY,
+            aoe_radius=aoe_radius,
+            range=range,
+            alive_duration=alive_duration,
+            tick_interval=tick_interval,
+            tick_value=tick_value,
+            tick_effect_type=TickEffectType.HEAL,
+            tick_scaling_stat=scaling_stat,
+            tick_scaling_factor=scaling_factor,
         )
 
 
@@ -449,4 +649,28 @@ SKILLS: Dict[str, Skill] = {
     "shield": SkillBuilder.shield("Shield", 50, 5, 20, 5.0),
     "ice_shield": SkillBuilder.shield("Ice Shield", 75, 8, 35, 6.0, scaling_stat="spell_power"),
     "power_word_shield": SkillBuilder.shield("Power Word: Shield", 60, 6, 25, 5.0),
+    
+    # Persistent tick effects
+    "molotov": SkillBuilder.tick_damage(
+        "Molotov", 
+        tick_value=5, 
+        alive_duration=5.0, 
+        tick_interval=0.5,
+        cost=30, 
+        cooldown=4.0, 
+        aoe_radius=40,
+        scaling_stat="spell_power",
+        scaling_factor=1.0,
+    ),
+    "healing_rain": SkillBuilder.tick_heal(
+        "Healing Rain",
+        tick_value=8,
+        alive_duration=6.0,
+        tick_interval=1.0,
+        cost=40,
+        cooldown=8.0,
+        aoe_radius=60,
+        scaling_stat="healing_power",
+        scaling_factor=1.0,
+    ),
 }
