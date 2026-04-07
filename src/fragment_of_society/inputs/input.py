@@ -51,7 +51,6 @@ class InputConfig:
         115: GameAction.MOVE_DOWN,
         97: GameAction.MOVE_LEFT,
         100: GameAction.MOVE_RIGHT,
-        32: GameAction.ATTACK,
         49: GameAction.SKILL_1,
         50: GameAction.SKILL_2,
         51: GameAction.SKILL_3,
@@ -63,7 +62,9 @@ class InputConfig:
         8: GameAction.CANCEL,
         106: GameAction.DEBUG_TOGGLE,
     })
-    mouse_button_map: Dict[int, GameAction] = field(default_factory=dict)
+    mouse_button_map: Dict[int, GameAction] = field(default_factory=lambda: {
+        1: GameAction.INTERACT,
+    })
 
 
 class InputSource(ABC):
