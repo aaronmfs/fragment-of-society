@@ -1,17 +1,29 @@
 from __future__ import annotations
 
 import uuid
-from typing import Optional
+from typing import Optional, Dict
+from enum import Enum, auto
 
 from fragment_of_society.components import Stats, Hitbox
+
+
+class EntityType(Enum):
+    PLAYER = auto()
+    ENEMY = auto()
+    NPC = auto()
+    OBJECT = auto()
+
 
 class Entity:
     def __init__(
             self,
             x: float,
             y: float,
-            stats: Optional[Stats] = None
-            ) -> None:
+            stats: Optional[Stats] = None,
+            entity_type: Optional[EntityType] = None,
+            sprite_key: str = "player",
+            animations: Optional[Dict[str, str]] = None,
+    ) -> None:
         if stats is None:
             stats = Stats()
 
@@ -25,6 +37,10 @@ class Entity:
 
         self.id = uuid.uuid4()
         self.stats = stats
+
+        self.entity_type = entity_type
+        self.sprite_key = sprite_key
+        self.animations = animations or {"idle": "player_idle", "walk": "player_walk", "attack": "player_attack"}
 
         self._hitbox_width = 35
         self._hitbox_height = 35
