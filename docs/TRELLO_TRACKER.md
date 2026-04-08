@@ -136,6 +136,6 @@ WHAT: Sprite rendering for entities
 
 WHY: Replace debug shapes with actual graphics
 Checklist
-- [ ] sprite loading
-- [ ] sprite batching
-- [ ] animation system
+- [x] sprite loading
+- [x] sprite batching
+- [x] animation system
