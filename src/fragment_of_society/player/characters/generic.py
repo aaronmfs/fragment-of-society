@@ -1,6 +1,7 @@
 from fragment_of_society.components import Stats, SkillBuilder
 from fragment_of_society.player import Character
 
+
 class Generic(Character):
     def __init__(self, x: float = 0, y: float = 0) -> None:
 
@@ -11,14 +12,20 @@ class Generic(Character):
             speed=10
         )
 
-        super().__init__(x, y, stats)
+        animations = {
+            "idle": "warrior_idle",
+            "walk": "warrior_walk",
+            "attack": "warrior_attack"
+        }
+
+        super().__init__(x, y, stats, sprite_key="warrior", animations=animations)
         self.name = "Generic"
 
         self.basic_attack = SkillBuilder.damage(
             name="Basic Attack",
             base_damage=10.0,
             cost=0,
-            cooldown=2.0,
+            cooldown=1,
             scaling_stat="attack",
             attack_width=200,
             attack_height=225,
@@ -29,7 +36,7 @@ class Generic(Character):
             name="AoE Blast",
             base_damage=20.0,
             cost=0,
-            cooldown=2,
+            cooldown=5,
             scaling_stat="attack",
             aoe_radius=150,
         )
