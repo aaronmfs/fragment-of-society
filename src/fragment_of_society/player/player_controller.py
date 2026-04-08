@@ -34,15 +34,21 @@ class PlayerController:
         return 0.0
 
     def handle_attacks(self, input_manager: InputManager, entities: List, camera_offset: tuple[float, float] = (0, 0)):
-        if input_manager.is_action_just_pressed(GameAction.ATTACK):
+        if input_manager.is_action_just_pressed(GameAction.INTERACT):
             if self.character and self.character.basic_attack:
                 attack_rotation = self.get_attack_rotation(input_manager, camera_offset)
                 self._execute_skill(self.character.basic_attack, entities or [], attack_rotation)
 
     def _execute_skill(self, skill, entities: List, attack_rotation: float = None):
-        from fragment_of_society.components import AABB
+        if not skill.can_use(self.character):
+            return
 
-        attack_hitbox = None
+        targets = [e for e in entities if e != self.character]
+        result = skill.use(self.character, targets)
+
+        if not result.success:
+            return
+
         rotation = attack_rotation if attack_rotation is not None else self.character.rotation
 
         if skill.has_attack_hitbox:
@@ -51,26 +57,8 @@ class PlayerController:
                 self.character.y,
                 rotation
             )
-        elif skill.aoe_radius > 0:
-            r = skill.aoe_radius
-            attack_hitbox = AABB(
-                x=self.character.x - r,
-                y=self.character.y - r,
-                width=r * 2,
-                height=r * 2
-            )
-
-        if attack_hitbox:
             self.character.attack_hitbox = attack_hitbox
             self.character.attack_hitbox_timer = 0.15
-
-            damage = skill.effects[0].base_value * (1 + self.character.stats.attack / 100)
-
-            for entity in entities:
-                if entity == self.character:
-                    continue
-                if Collision.check_collision(attack_hitbox, entity.hitbox):
-                    entity.take_damage(int(damage))
 
     def update(self, input_manager: InputManager, dt: float, entities: Optional[List] = None, camera_offset: tuple[float, float] = (0, 0)):
         self.handle_movements(input_manager, dt, camera_offset)
@@ -80,3 +68,8 @@ class PlayerController:
             if self.character and self.character.first_skill:
                 attack_rotation = self.get_attack_rotation(input_manager, camera_offset)
                 self._execute_skill(self.character.first_skill, entities or [], attack_rotation)
+
+        if self.character:
+            for skill in [self.character.basic_attack, self.character.first_skill]:
+                if skill:
+                    skill.update(dt)
