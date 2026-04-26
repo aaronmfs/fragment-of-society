@@ -1,4 +1,4 @@
-from .entity import Entity
+from .base import Entity
+from .player import Player
 
-Character = Entity
-Enemy = Entity
+__all__ = ["Entity", "Player"]

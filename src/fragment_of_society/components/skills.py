@@ -124,6 +124,10 @@ class PersistentSkillEffect:
     def aoe_radius(self) -> float:
         return self.skill.aoe_radius
 
+    @property
+    def follows_owner(self) -> bool:
+        return self.skill.follows_owner
+
     def _calculate_tick_value(self) -> float:
         value = self.tick_value
         if self.skill.tick_scaling_stat and hasattr(self.owner, self.skill.tick_scaling_stat):
@@ -172,21 +176,25 @@ class PersistentSkillEffect:
 
     def update(self, dt: float, entities: List[Any]) -> Tuple[float, float]:
         self.age += dt
-        
+
+        if self.follows_owner and hasattr(self.owner, "x") and hasattr(self.owner, "y"):
+            self.x = self.owner.x
+            self.y = self.owner.y
+
         if self.alive_duration > 0 and self.age >= self.alive_duration:
             self.alive = False
             return 0.0, 0.0
-        
+
         total_damage = 0.0
         total_healing = 0.0
-        
+
         if self.tick_interval > 0:
             while self.last_tick + self.tick_interval <= self.age:
                 self.last_tick += self.tick_interval
                 dmg, heal = self.tick(entities)
                 total_damage += dmg
                 total_healing += heal
-        
+
         return total_damage, total_healing
 
 
@@ -224,6 +232,7 @@ class Skill:
         tick_effect_type: TickEffectType = TickEffectType.DAMAGE,
         tick_scaling_stat: Optional[str] = None,
         tick_scaling_factor: float = 1.0,
+        follows_owner: bool = False,
     ):
         self.name = name
         self.cooldown = cooldown
@@ -248,6 +257,7 @@ class Skill:
         self.tick_effect_type = tick_effect_type
         self.tick_scaling_stat = tick_scaling_stat
         self.tick_scaling_factor = tick_scaling_factor
+        self.follows_owner = follows_owner
 
     def can_use(self, user: Any) -> bool:
         if self.current_cooldown > 0:
@@ -259,7 +269,7 @@ class Skill:
 
     @property
     def has_attack_hitbox(self) -> bool:
-        return self.attack_width > 0 and self.attack_height > 0
+        return (self.attack_width > 0 and self.attack_height > 0) or self.aoe_radius > 0
 
     def create_attack_hitbox(
         self,
@@ -270,21 +280,33 @@ class Skill:
         from fragment_of_society.components.hitbox import OBB
         if not self.has_attack_hitbox:
             return None
-        
+
         from math import cos, sin
-        
+
+        if self.aoe_radius > 0 and self.attack_width == 0:
+            size = self.aoe_radius * 2
+            return OBB(
+                x=user_x - self.aoe_radius,
+                y=user_y - self.aoe_radius,
+                width=size,
+                height=size,
+                rotation=0,
+                offset_x=0,
+                offset_y=0
+            )
+
         offset_distance = self.attack_offset_x if self.attack_offset_x > 0 else 40
         perp_offset = self.attack_offset_y
-        
+
         forward_x = offset_distance * cos(user_rotation)
         forward_y = offset_distance * sin(user_rotation)
-        
+
         perp_x = -perp_offset * sin(user_rotation)
         perp_y = perp_offset * cos(user_rotation)
-        
+
         center_x = user_x + forward_x + perp_x
         center_y = user_y + forward_y + perp_y
-        
+
         return OBB(
             x=center_x - self.attack_width / 2,
             y=center_y - self.attack_height / 2,
@@ -374,6 +396,10 @@ class SkillBuilder:
         attack_height: float = 0,
         attack_offset_x: float = 0,
         attack_offset_y: float = 0,
+        alive_duration: float = 0,
+        tick_interval: float = 0,
+        tick_value: float = 0,
+        follows_owner: bool = False,
     ) -> Skill:
         return Skill(
             name=name,
@@ -392,6 +418,10 @@ class SkillBuilder:
             attack_height=attack_height,
             attack_offset_x=attack_offset_x,
             attack_offset_y=attack_offset_y,
+            alive_duration=alive_duration,
+            tick_interval=tick_interval,
+            tick_value=tick_value,
+            follows_owner=follows_owner,
         )
 
     @staticmethod

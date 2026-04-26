@@ -2,16 +2,9 @@ from __future__ import annotations
 
 import uuid
 from typing import Optional, Dict
-from enum import Enum, auto
 
 from fragment_of_society.components import Stats, Hitbox
-
-
-class EntityType(Enum):
-    PLAYER = auto()
-    ENEMY = auto()
-    NPC = auto()
-    OBJECT = auto()
+from fragment_of_society.entities.states import StateMachine
 
 
 class Entity:
@@ -20,7 +13,6 @@ class Entity:
             x: float,
             y: float,
             stats: Optional[Stats] = None,
-            entity_type: Optional[EntityType] = None,
             sprite_key: str = "player",
             animations: Optional[Dict[str, str]] = None,
     ) -> None:
@@ -38,7 +30,6 @@ class Entity:
         self.id = uuid.uuid4()
         self.stats = stats
 
-        self.entity_type = entity_type
         self.sprite_key = sprite_key
         self.animations = animations or {"idle": "player_idle", "walk": "player_walk", "attack": "player_attack"}
 
@@ -47,7 +38,7 @@ class Entity:
         self._hitbox = Hitbox(self.x, self.y, self._hitbox_width, self._hitbox_height)
 
         self._movement_input: tuple[float, float] = (0.0, 0.0)
-        self.base_speed: float = 650
+        self.base_speed = 650
 
         self.basic_attack = None
         self.first_skill = None
@@ -56,11 +47,20 @@ class Entity:
 
         self.attack_hitbox = None
         self.attack_hitbox_timer = 0.0
+        self.skill1_timer = 0.0
+        self.skill2_timer = 0.0
+        self.skill3_timer = 0.0
+
+        self.state_machine: Optional[StateMachine] = None
 
     @property
     def hitbox(self):
         self._hitbox.update_center(self.x, self.y)
         return self._hitbox
+
+    @property
+    def movement_input(self) -> tuple[float, float]:
+        return self._movement_input
 
     def set_movement(self, x: float, y: float):
         self._movement_input = (x, y)
@@ -69,7 +69,7 @@ class Entity:
         self.rotation = float(rotation)
 
     def apply_movements(self, dt: float):
-        final_speed = 650 * ( 1 + self.stats.speed / 100 )
+        final_speed = 650 * (1 + self.stats.speed / 100)
         self.x += self._movement_input[0] * final_speed * dt
         self.y += self._movement_input[1] * final_speed * dt
 
@@ -78,6 +78,14 @@ class Entity:
             if self.attack_hitbox_timer <= 0:
                 self.attack_hitbox = None
 
+        if self.skill1_timer > 0:
+            self.skill1_timer -= dt
+        if self.skill2_timer > 0:
+            self.skill2_timer -= dt
+        if self.skill3_timer > 0:
+            self.skill3_timer -= dt
+
     def update(self, dt: float) -> None:
         self.apply_movements(dt)
-
+        if self.state_machine:
+            self.state_machine.update(dt)

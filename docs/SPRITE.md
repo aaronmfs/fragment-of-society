@@ -10,7 +10,8 @@ Simple guide to using sprites, animations, and rendering in your game.
 3. [Sprite Renderer](#sprite-renderer)
 4. [Animation System](#animation-system)
 5. [Entity Integration](#entity-integration)
-6. [Complete Example](#complete-example)
+6. [State Machine](#state-machine)
+7. [Complete Example](#complete-example)
 
 ---
 
@@ -350,6 +351,122 @@ controller.current_frame_key
 renderer.render(surface, entity, offset)
 renderer.render_frame(surface, "sprite_name", x, y, rotation, offset)
 ```
+
+
+## State Machine
+
+Simple state machine that maps state names to animation keys.
+
+### Quick Start
+
+```python
+from fragment_of_society.states import StateMachine
+
+# Create state machine with states
+state_machine = StateMachine(
+    owner=self,  # the entity
+    states={
+        "idle": "warrior_idle",
+        "walk": "warrior_walk",
+        "attack": "warrior_attack",
+    },
+    initial="idle"
+)
+
+# Change state
+state_machine.set_state("walk")
+
+# Get current animation key
+animation_key = state_machine.animation_key  # "warrior_walk"
+```
+
+### Methods
+
+| Method | Description |
+|--------|-------------|
+| `set_state(name)` | Change to a new state |
+| `update(dt)` | Update (can be extended) |
+| `animation_key` | Current animation key |
+
+### Integration with Entity
+
+```python
+from fragment_of_society.states import StateMachine
+
+class MyCharacter(Character):
+    def __init__(self, x, y):
+        super().__init__(x, y)
+        
+        # Create state machine
+        self.state_machine = StateMachine(
+            owner=self,
+            states={
+                "idle": "knight_idle",
+                "walk": "knight_walk",
+                "attack": "knight_attack",
+            },
+            initial="idle"
+        )
+```
+
+### Game Loop Example
+
+```python
+# In update loop
+player = game.player
+movement = player.movement_input
+
+if movement != (0, 0):
+    player.state_machine.set_state("walk")
+else:
+    player.state_machine.set_state("idle")
+
+# For attack, change temporarily
+if player.attacking:
+    player.state_machine.set_state("attack")
+
+# Update (Entity.update() calls this automatically)
+player.update(dt)
+
+# Get animation key for rendering
+frame_key = player.state_machine.animation_key
+```
+
+### Using with AnimationController
+
+Combine with `AnimationController` for full animation support:
+
+```python
+from fragment_of_society.states import StateMachine
+from fragment_of_society.renderers import AnimationController, Animation
+
+class Fighter(Character):
+    def __init__(self, x, y):
+        super().__init__(x, y)
+        
+        # Define animations
+        animations = {
+            "idle": Animation("idle", ["knight_idle_0", "knight_idle_1"], 0.2),
+            "walk": Animation("walk", ["knight_walk_0", "knight_walk_1"], 0.1),
+            "attack": Animation("attack", ["knight_attack_0", "knight_attack_1"], 0.15, loop=False)
+        }
+        
+        self.animation_controller = AnimationController(animations, "idle")
+        
+        self.state_machine = StateMachine(
+            owner=self,
+            states={"idle": "idle", "walk": "walk", "attack": "attack"},
+            initial="idle"
+        )
+    
+    def update(self, dt):
+        super().update(dt)
+        
+        # Update state machine -> animation controller
+        self.animation_controller.set_state(self.state_machine.current)
+        self.animation_controller.update(dt)
+```
+
 
 ---
 

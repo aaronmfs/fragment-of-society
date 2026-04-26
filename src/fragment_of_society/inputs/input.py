@@ -1,17 +1,5 @@
 """
-Input Module - Framework-agnostic input handling.
-Decouples input detection from game logic for RL and reuse.
-
-Usage:
-    from input import InputManager, GameAction
-    
-    input_mgr = InputManager()
-    
-    # In game loop:
-    input_mgr.update()
-    
-    if input_mgr.is_action_pressed(GameAction.MOVE_UP):
-        player.move(0, -1)
+Input Module - Pygame input handling.
 """
 
 from __future__ import annotations
@@ -19,6 +7,8 @@ from enum import Enum, auto
 from dataclasses import dataclass, field
 from typing import Dict, Tuple, Callable, Optional, List, Any
 from abc import ABC, abstractmethod
+
+import pygame
 
 
 class GameAction(Enum):
@@ -155,14 +145,15 @@ class InputManager:
         self._just_pressed_callbacks: Dict[GameAction, List[Callable]] = {}
         self._initialized = True
 
-    def update(self, keys: Optional[List[bool]] = None, mouse_pos: Optional[Tuple[int, int]] = None, mouse_buttons: Optional[Tuple[bool, bool, bool]] = None) -> None:
+    def update(self) -> None:
         self.keyboard.update(0)
-        if keys is not None:
-            self.keyboard.update_keys(keys)
+        keys = pygame.key.get_pressed()
+        self.keyboard.update_keys(keys)
 
         self.mouse.update(0)
-        if mouse_pos is not None and mouse_buttons is not None:
-            self.mouse.update_mouse(mouse_pos, mouse_buttons)
+        mouse_pos = pygame.mouse.get_pos()
+        mouse_buttons = pygame.mouse.get_pressed()
+        self.mouse.update_mouse(mouse_pos, mouse_buttons)
 
         self._dispatch_callbacks()
 

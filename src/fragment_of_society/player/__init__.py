@@ -1,2 +1,0 @@
-from fragment_of_society.entities import Character
-from .player_controller import PlayerController
