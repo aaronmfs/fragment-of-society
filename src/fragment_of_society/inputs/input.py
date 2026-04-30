@@ -28,7 +28,10 @@ class GameAction(Enum):
     CONFIRM = auto()
     CANCEL = auto()
     DEBUG_TOGGLE = auto()
-
+    EDITOR_TOGGLE = auto()
+    EDITOR_SAVE = auto()
+    EDITOR_LOAD = auto()
+    EDITOR_NEXT_TILE = auto()
 
 @dataclass
 class InputConfig:

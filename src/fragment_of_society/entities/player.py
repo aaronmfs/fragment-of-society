@@ -38,6 +38,11 @@ class Player(Entity):
         self._animation_timer = 0.0
         self._frame_duration = 0.1
         self.persistent_effects: list = []
+        self.hit_targets: set = set()
+        self.max_hp = 100
+        self.hp = self.max_hp
+        self.is_dead = False
+        self.invincibility_timer = 0.0
 
     def handle_input(self, input_manager: InputManager) -> None:
         x, y = 0.0, 0.0
@@ -91,24 +96,36 @@ class Player(Entity):
             return
 
         rotation = attack_rotation if attack_rotation is not None else self.rotation
-
         if self.state_machine:
             self.state_machine.set_state(state_key)
 
         skill.use(self, [])
 
         if skill.has_attack_hitbox:
-            self.attack_hitbox = skill.create_attack_hitbox(
-                self.x,
-                self.y,
-                rotation
-            )
+            self.attack_hitbox = skill.create_attack_hitbox(self.x, self.y, rotation)
             self.attack_hitbox_timer = 0.15
+            self.hit_targets.clear()
 
         if skill.has_persistent_effect:
             effect = skill.create_persistent_effect(self, self.x, self.y)
             if effect:
                 self.persistent_effects.append(effect)
+
+    def take_damage(self, amount: float):
+        # Ignore damage if we are invincible or dead
+        if self.invincibility_timer > 0 or self.is_dead:
+            return
+            
+        self.hp -= amount
+        print(f"Player hit! HP: {self.hp}/{self.max_hp}")
+        
+        # Grant 1.0 second of invincibility after getting hit
+        self.invincibility_timer = 1.0 
+        
+        if self.hp <= 0:
+            self.hp = 0
+            self.is_dead = True
+            print("GAME OVER - Player has died!")
 
     def draw(self, screen, camera_offset_x: float = 0, camera_offset_y: float = 0) -> None:
         self.camera_x = camera_offset_x
@@ -130,6 +147,10 @@ class Player(Entity):
                     (camera_offset_x, camera_offset_y)
                 )
                 sprite_rendered = True
+                
+        if self.invincibility_timer > 0:
+            if int(self.invincibility_timer * 15) % 2 == 0:
+                return
 
         if not sprite_rendered:
             px = int(self.x - camera_offset_x)
@@ -157,6 +178,8 @@ class Player(Entity):
     def update(self, dt: float) -> None:
         super().update(dt)
 
+        if self.invincibility_timer > 0:
+            self.invincibility_timer -= dt
         if self.basic_attack:
             self.basic_attack.update(dt)
         if self.first_skill:

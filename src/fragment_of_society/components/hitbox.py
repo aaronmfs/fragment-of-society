@@ -375,10 +375,12 @@ class Collision:
         overlap_y = min(a.y + a.height, b.y + b.height) - max(a.y, b.y)
 
         if overlap_x < overlap_y:
-            normal = Vector2(1, 0) if a.center[0] < b.center[0] else Vector2(-1, 0)
+            #FIXED: If A is left of B, push A left (-1). Otherwise push right (1).
+            normal = Vector2(-1, 0) if a.center[0] < b.center[0] else Vector2(1, 0)
             return normal, overlap_x
         else:
-            normal = Vector2(0, 1) if a.center[1] < b.center[1] else Vector2(0, -1)
+            #FIXED: If A is above B, push A up (-1). Otherwise push down (1).
+            normal = Vector2(0, -1) if a.center[1] < b.center[1] else Vector2(0, 1)
             return normal, overlap_y
 
     @staticmethod

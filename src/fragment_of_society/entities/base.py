@@ -69,10 +69,7 @@ class Entity:
         self.rotation = float(rotation)
 
     def apply_movements(self, dt: float):
-        final_speed = 650 * (1 + self.stats.speed / 100)
-        self.x += self._movement_input[0] * final_speed * dt
-        self.y += self._movement_input[1] * final_speed * dt
-
+        # The collision system in game.py will handle movement.
         if self.attack_hitbox_timer > 0:
             self.attack_hitbox_timer -= dt
             if self.attack_hitbox_timer <= 0:
