@@ -9,7 +9,8 @@ class Projectile:
         self.speed = speed
         self.damage = damage
         self.sprite_key = "Arrow"
-        self.hitbox = Hitbox(x, y, 10, 10)
+        
+        self.hitbox = Hitbox(x, y, 24, 24)
         self.alive = True
         self.lifetime = 2.0
 
@@ -18,11 +19,11 @@ class Projectile:
         if self.lifetime <= 0:
             self.alive = False
         
-        # Move forward based on the angle we fired it
         self.x += math.cos(self.rotation) * self.speed * dt
         self.y += math.sin(self.rotation) * self.speed * dt
         self.hitbox.update_center(self.x, self.y)
 
     def draw(self, screen, camera_x, camera_y, sprite_renderer):
+        # Apply 2.5x rotation-based rendering offset or scale if supported by your renderer
         angle_deg = -math.degrees(self.rotation) - 90
         sprite_renderer.render_frame(screen, self.sprite_key, self.x, self.y, angle_deg, (camera_x, camera_y))

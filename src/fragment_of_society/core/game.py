@@ -29,8 +29,7 @@ class Game:
         self.tile_renderer = TileRenderer(self.tilemap.tile_size)
         self.camera = Camera(config.SCREEN_WIDTH, config.SCREEN_HEIGHT)
         self.camera.follow(self.player)
-        self.hitbox_renderer = HitboxRenderer(self.screen)
-        
+        self.hitbox_renderer = HitboxRenderer(self.screen)        
         # Input
         self.input_manager = InputManager.get_instance()
         self.input_manager.map_key(pygame.K_TAB, GameAction.EDITOR_TOGGLE)
@@ -47,6 +46,7 @@ class Game:
         
         # Hook in the new Editor Module
         self.edit_mode = False
+        self.level_editor = LevelEditor(self)
         self.editor = LevelEditor(self) 
 
         self.load_level(self.current_level)
@@ -192,9 +192,19 @@ class Game:
             self.player.x, self.player.y = player_spawns[0]
             self.player.hitbox.update_center(self.player.x, self.player.y)
             
+        from fragment_of_society.entities.enemy import Slime, KingSlime 
+
         self.enemies.clear() 
+
+        # Spawn Slimes (ID 50)
         for ex, ey in self.tilemap.get_entity_spawns(50):
-            self.enemies.append(Enemy(x=ex, y=ey, target=self.player))
+            self.enemies.append(Slime(x=ex, y=ey, target=self.player))
+
+        # Spawn King Slime Boss (ID 53)
+        for ex, ey in self.tilemap.get_entity_spawns(53):
+            self.enemies.append(KingSlime(x=ex, y=ey, target=self.player))
+            
+        self.portal = None
             
         self.portal = None 
         if self.current_level == "hub.json":
@@ -241,13 +251,15 @@ class Game:
         
         # Draw World
         self.tilemap.draw(render_surf, cx, cy, self.tile_renderer, self.edit_mode)
-        for enemy in self.enemies:
-            enemy.draw(render_surf, cx, cy)
-        self.player.draw(render_surf, cx, cy)
         
-        if self.player.attack_hitbox:
-            self.hitbox_renderer._surface = render_surf
-            self.hitbox_renderer.render(self.player.attack_hitbox, (255, 255, 0), cx, cy)
+        for enemy in self.enemies:
+            if hasattr(enemy, 'image'):
+                render_surf.blit(enemy.image, (enemy.x - cx, enemy.y - cy))
+            else:
+                # Fallback for generic enemies without animation
+                enemy.draw(render_surf, cx, cy)
+                
+        self.player.draw(render_surf, cx, cy)
 
         # Route drawing to Editor
         if self.edit_mode:
