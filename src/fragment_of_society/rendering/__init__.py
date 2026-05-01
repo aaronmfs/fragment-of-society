@@ -1,6 +1,7 @@
 from .camera import Camera
-from .hitbox import HitboxRenderer, DebugRenderer
-from .sprite import SpriteLoader, Sprite, Animation, AnimationController, SpriteRenderer
+from .hitbox import HitboxRenderer
+from .sprite import Sprite, SpriteLoader, SpriteRenderer, Animation, AnimationController
+from .tile_renderer import TileRenderer
 
 __all__ = [
     "Camera",
@@ -11,4 +12,5 @@ __all__ = [
     "Animation",
     "AnimationController",
     "SpriteRenderer",
+    "TileRenderer",
 ]

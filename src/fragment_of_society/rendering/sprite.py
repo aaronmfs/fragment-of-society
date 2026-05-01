@@ -140,6 +140,46 @@ class SpriteLoader:
             return sprite
         except Exception:
             return None
+        
+    @staticmethod
+    def load_spritesheet(sheet_filename: str, frame_width: int, frame_height: int, animation_map: dict, scale_factor: float = 1.0) -> None:
+        """
+        Slices a spritesheet into individual frames, scaling them up if needed.
+        """
+        SpriteLoader._ensure_initialized()
+        sheet_path = SpriteLoader.get_assets_path() / sheet_filename
+
+        if not sheet_path.exists() or not PYGAME_AVAILABLE:
+            print(f"Warning: Could not find spritesheet {sheet_path}")
+            return
+
+        from pygame import image, Surface, Rect, transform
+        try:
+            sheet = image.load(str(sheet_path)).convert_alpha()
+            sheet_w, sheet_h = sheet.get_size()
+            cols = sheet_w // frame_width
+
+            for anim_name, frame_indices in animation_map.items():
+                for i, frame_idx in enumerate(frame_indices):
+                    row = frame_idx // cols
+                    col = frame_idx % cols
+                    
+                    rect = Rect(col * frame_width, row * frame_height, frame_width, frame_height)
+                    frame_surf = Surface((frame_width, frame_height), pygame.SRCALPHA)
+                    frame_surf.blit(sheet, (0, 0), rect)
+                    new_w = int(frame_width * scale_factor)
+                    new_h = int(frame_height * scale_factor)
+                    if scale_factor != 1.0:
+                        frame_surf = transform.scale(frame_surf, (new_w, new_h))
+                    
+                    frame_key = f"{anim_name}_{i}"
+                    SpriteLoader._cache[frame_key] = Sprite(
+                        name=frame_key, texture=frame_surf, 
+                        width=new_w, height=new_h
+                    )
+            print(f"Successfully sliced and scaled {sheet_filename}!")
+        except Exception as e:
+            print(f"Error slicing spritesheet: {e}")
 
     @staticmethod
     def preload(sprite_keys: list[str]) -> Dict[str, Sprite]:

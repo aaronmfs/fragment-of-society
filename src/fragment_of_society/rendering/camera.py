@@ -10,6 +10,7 @@ class Camera:
 
         self.offset_x: float = 0.0
         self.offset_y: float = 0.0
+        self.zoom = 1.0
         self.target = None
 
     def follow(self, target) -> None:

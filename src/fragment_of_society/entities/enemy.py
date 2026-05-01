@@ -23,7 +23,6 @@ class Enemy(Entity):
         self.hp -= amount
         print(f"{self.name} took {amount} damage! HP: {self.hp}/{self.max_hp}")
         
-        # Add a quick visual flash by changing color temporarily (optional but fun)
         self.color = (255, 255, 255) 
         
         if self.hp <= 0:
@@ -31,7 +30,6 @@ class Enemy(Entity):
             print(f"{self.name} has been defeated!")
 
     def update(self, dt: float) -> None:
-        # Return to normal red color after flashing white from damage
         if self.color == (255, 255, 255):
             self.color = (255, 50, 50)
 

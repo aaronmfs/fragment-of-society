@@ -70,3 +70,37 @@ class Generic(Entity):
             tick_interval=0.5,
             tick_value=5.0,
         )
+class Archer(Entity):
+    def __init__(self, x: float = 0, y: float = 0) -> None:
+        stats = Stats(
+            max_hp=80,
+            attack=15,
+            defence=5,
+            speed=15
+        )
+        animations = {
+            "idle_left": "girl_idle_left",
+            "idle_right": "girl_idle_right",
+            "walk_left": "girl_walk_left",
+            "walk_right": "girl_walk_right",
+            
+            # Placeholders for attacking so the game doesn't crash! 
+            # (It will just play the idle animation when you attack for now)
+            "attack_left": "girl_idle_left",   
+            "attack_right": "girl_idle_right"  
+        }
+
+        super().__init__(x, y, stats, sprite_key="girl_idle_left_0", animations=animations)
+        self.name = "Archer"
+
+        # Bow Attack
+        self.basic_attack = SkillBuilder.damage(
+            name="Shoot Arrow",
+            base_damage=15.0,
+            cost=0,
+            cooldown=0.5,
+            scaling_stat="attack",
+            attack_width=60,   
+            attack_height=15,  
+            attack_offset_x=50 
+        )
